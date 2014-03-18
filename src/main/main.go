@@ -53,7 +53,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer file.Close()
-	fmt.Fprintf(w, "%v", handler.Header)
+//	fmt.Fprintf(w, "%v", handler.Header)
 	zipFile := dataDir + centerID + "/" + handler.Filename
 
     os.Mkdir(dataDir + centerID, 0777) //创建中文文件夹，如果存在则不创建
@@ -68,6 +68,8 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = unzip(zipFile, dataDir + centerID + "/")
     if err != nil { log.Fatal(err) }
+
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 //解压zip文件
