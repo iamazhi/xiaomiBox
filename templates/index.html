@@ -1,6 +1,6 @@
 <html>
  <head>
-     <title>Golang upload{{.Title}}</title>
+     <title>{{.Title}}</title>
  </head>
 <style>
 #content {
@@ -15,6 +15,8 @@ padding: 30px 0px 10px 20px;
 border-bottom: 1px solid #ddd;
 position: relative
 }
+
+#message {color:gray}
 
 input[type='file'] {font-size: 16px}
 
@@ -70,10 +72,9 @@ table>thead>tr>th {border-top:none}
 		<div id='uploadBox'>
 	        <form id="uploadform" method="post" enctype="multipart/form-data" action="/upload">
             <input type="file" id="file" name="file" />
-            <input type="submit" value="保存">
+            <input type="submit" value="保存"><span id='message'>{{.Message}}</span>
    		    </form>
 		</div>
-	<!--<iframe src="/data/1/" style='width:100%; min-height:500px; border:none'></iframe>-->
 		<div id='coursesBox'>
 			<table>
 				<thead>

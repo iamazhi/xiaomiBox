@@ -29,10 +29,12 @@ type CourseFile struct {
 var dataDir string = "../data/"
 var centerID string
 var Config *goconfig.ConfigFile
+var message = "提醒：请上传zip包"
 
 type Index struct {
 	CenterID   string
 	Title      string
+	Message    string
 	CourseList []string
 }
 
@@ -42,7 +44,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	indexVars := Index{Title: "课程包管理", CenterID: centerID}
+	indexVars := Index{Title: "课程包管理", CenterID: centerID, Message: message}
 
 	path := dataDir + centerID
 	os.Mkdir(path, 0777) //创建中心文件夹，如果存在则不创建
@@ -71,16 +73,18 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	file, handler, err := r.FormFile("file")
 
 	if err != nil {
-		fmt.Fprintf(w, "请上传zip包")
-		return
+		message = "请选择上传文件"
+		http.Redirect(w, r, "/", http.StatusFound)
+		return 
 	}
 
 	if !strings.Contains(strings.ToLower(handler.Filename), ".zip") {
-		fmt.Fprintf(w, "请上传zip包")
-		return
+		message = "您所上传的不是zip包，请重新上传"
+		http.Redirect(w, r, "/", http.StatusFound)
+		return 
 	}
-
 	defer file.Close()
+
 	//	fmt.Fprintf(w, "%v", handler.Header)
 	zipFile := dataDir + centerID + "/" + handler.Filename
 
@@ -99,6 +103,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+	message = "上传成功！"
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
