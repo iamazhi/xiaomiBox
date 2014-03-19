@@ -1,13 +1,98 @@
 <html>
  <head>
-     <title>Golang upload{title}</title>
+     <title>Golang upload{{.Title}}</title>
  </head>
+<style>
+#content {
+width: 80%;
+margin: 0 auto;
+border-radius: 4px; 
+border: #ddd 1px solid
+}
+
+#uploadBox {
+padding: 30px 0px 10px 20px; 
+border-bottom: 1px solid #ddd;
+position: relative
+}
+
+input[type='file'] {font-size: 16px}
+
+input[type='submit']{
+color: #fff;
+background-color: #5cb85c;
+padding: 6px 12px;
+margin-bottom: 0;
+font-size: 14px;
+line-height: 1.428571429;
+text-align: center;
+border: 1px solid transparent;
+border-radius: 4px;
+cursor: pointer;
+}
+
+#uploadBox:before, #coursesBox:before {
+content: "文件上传";
+position: absolute;
+top: 0px;
+left: 0px;
+padding: 5px 10px;
+font-size: 18px;
+font-weight: bold;
+background-color: #f5f5f5;
+border-right: 1px solid #ddd;
+border-bottom: 1px solid #ddd;
+border-radius: 0px 0 4px 0;
+}
+
+#coursesBox {
+position: relative; 
+padding-top: 30px;
+}
+
+#coursesBox:before { content: "课程包列表"; }
+
+table { border-collapse: collapse; border-spacing: 0; width:100%}
+table>thead>tr>th, table>tbody>tr>td{
+padding: 8px;
+line-height: 1.428571429;
+vertical-align: top;
+border-top: 1px solid #ddd;
+text-align:center;
+}
+table>thead>tr>th {border-top:none}
+
+.deleteButton {cursor:pointer; color:blue}
+
+</style>
  <body>
-     <form id="uploadform" method="post" enctype="multipart/form-data" action="/upload">
-         <p>文件上传</p>
-         <input type="file" id="file" name="file" />
-         <input type="submit" value="保存">
-     </form>
-	<iframe src="/data/1/" style='width:100%; min-height:500px; border:none'></iframe>
+	<div id='content'>
+		<div id='uploadBox'>
+	        <form id="uploadform" method="post" enctype="multipart/form-data" action="/upload">
+            <input type="file" id="file" name="file" />
+            <input type="submit" value="保存">
+   		    </form>
+		</div>
+	<!--<iframe src="/data/1/" style='width:100%; min-height:500px; border:none'></iframe>-->
+		<div id='coursesBox'>
+			<table>
+				<thead>
+					<tr>
+						<th>课程包</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{{$CenterID := .CenterID}}
+					{{range $key, $value := .CourseList}}
+					<tr>
+						<td><a href='/data/{{$CenterID}}/{{$value}}' target='__blank'>{{$value}}</a></td>
+						<td><a class='deleteCourse' href='/deleteCourse?centerID={{$CenterID}}&coursename={{$value}}'>删除</a></td>
+					</tr>
+					{{end}}
+				</tbody>
+			</table>
+		</div>
+	</div>
  </body>
 </html>

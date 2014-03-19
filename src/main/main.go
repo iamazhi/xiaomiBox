@@ -12,6 +12,7 @@ import (
 	"strings"
 	"encoding/json"
 	"log"
+	"github.com/Unknwon/goconfig"
 )
 
 type Course struct {
@@ -26,12 +27,35 @@ type CourseFile struct {
 }
 
 var dataDir string = "../data/"
-var centerID string = "1"
+var centerID string
+var Config *goconfig.ConfigFile
+
+type Index struct {
+    CenterID string
+    Title string
+    CourseList []string
+}
 
 //上传页面
 func indexHandler(w http.ResponseWriter, r *http.Request){
-	var uploadTemplate = template.Must(template.ParseFiles("../templates/index.html"))
-	if err := uploadTemplate.Execute(w, nil); err != nil {
+	uploadTemplate, err := template.ParseFiles("../templates/index.html")
+	if err != nil {log.Fatal(err) }
+    indexVars := Index{Title: "课程包管理", CenterID: centerID}
+
+	path := dataDir + centerID
+    os.Mkdir(path, 0777) //创建中心文件夹，如果存在则不创建
+	files, err := ioutil.ReadDir(path)
+	if err != nil { fmt.Fprintln(w, "Fail to read Dir:" + path, err) }
+
+	for _,file := range files {
+		if file.IsDir() {
+			indexVars.CourseList = append(indexVars.CourseList, file.Name())
+		} else {
+			continue
+		}
+	}
+
+	if err := uploadTemplate.Execute(w, indexVars); err != nil {
 		log.Fatal("Execute: ", err.Error())
 			return
 	}
@@ -56,7 +80,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 //	fmt.Fprintf(w, "%v", handler.Header)
 	zipFile := dataDir + centerID + "/" + handler.Filename
 
-    os.Mkdir(dataDir + centerID, 0777) //创建中文文件夹，如果存在则不创建
+    os.Mkdir(dataDir + centerID, 0777) //创建中心文件夹，如果存在则不创建
 
 	f, err := os.OpenFile(zipFile, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
@@ -210,11 +234,35 @@ func getFileType(filename string) string{
 	return "image"
 }
 
+//解析配置文件
+func init() {
+	Config, _ = goconfig.LoadConfigFile("../etc/config.ini")
+	centerID, _ = Config.GetValue("api", "centerID")
+	fmt.Println("centerID = " + centerID)
+}
+
+//删除课程包
+func deleteCourse(w http.ResponseWriter, r *http.Request) {
+	courseName := ""
+    r.ParseForm()
+    for k, v := range r.Form {
+		if strings.ToLower(k) == "centerid"   { centerID   = strings.Join(v, "") }
+		if strings.ToLower(k) == "coursename" { courseName = strings.Join(v, "") }
+    }
+
+	courseDir := dataDir + centerID + "/" + courseName
+	err := os.RemoveAll(courseDir)
+	if err != nil {fmt.Println("Fail to delete '" + courseDir + "'")}
+
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
 func main() {
     http.HandleFunc("/", indexHandler)
     http.HandleFunc("/upload", uploadHandler)
     http.HandleFunc("/getCourseList", getCourseList)
     http.HandleFunc("/getCourseFiles", getCourseFiles)
+    http.HandleFunc("/deleteCourse", deleteCourse)
 	http.Handle("/data/", http.StripPrefix("/data", http.FileServer(http.Dir(dataDir))))
     http.ListenAndServe(":1234", nil)
 }
