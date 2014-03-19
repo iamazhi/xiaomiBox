@@ -125,6 +125,7 @@ func unzip(zipFile, dest string) error {
 		path := filepath.Join(dest, f.Name)
 		if f.FileInfo().IsDir() {
 			os.MkdirAll(path, f.Mode())
+			removeHiddens(path + "/.DS_Store")
 		} else {
 			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 			if err != nil {
@@ -139,7 +140,8 @@ func unzip(zipFile, dest string) error {
 		}
 	}
 
-	removeMAXOSX(dest + "__MACOSX")
+	removeHiddens(dest + "__MACOSX")
+	removeHiddens(dest + ".DS_Store")
 	err = os.Remove(zipFile)
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -150,13 +152,15 @@ func unzip(zipFile, dest string) error {
 }
 
 // 删除__MACOSX目录，mac压缩的信息目录
-func removeMAXOSX(dir string) {
-	fileinfo, err := os.Stat(dir)
+func removeHiddens(hidden string) {
+	fileinfo, err := os.Stat(hidden)
 	if err != nil {
 		return
 	}
 	if fileinfo.IsDir() {
-		os.RemoveAll(dir)
+		os.RemoveAll(hidden)
+	}else{
+		os.Remove(hidden)
 	}
 }
 
@@ -268,7 +272,7 @@ func getFileType(filename string) string {
 			return "video"
 		}
 	}
-	return "image"
+	return ""
 }
 
 //解析配置文件
